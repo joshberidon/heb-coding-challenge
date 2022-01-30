@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
@@ -7,7 +8,7 @@ public class Database {
     public Database(String s) {
         createNewDatabase(s);
         dropTables();
-        createImageTable();
+        createImagesTable();
         createTagsTable();
         createImageTagJunctionTable();
     }
@@ -27,14 +28,13 @@ public class Database {
         }
     }
 
-    private ResultSet execute(String sql) {
+    private void execute(String sql) {
         //make sure we  have a connection
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
         try (Statement statement = conn.createStatement()) {
             statement.execute(sql);
-            return statement.getResultSet();
         } catch (SQLException e) {
             //todo
             throw new RuntimeException(e.getMessage());
@@ -47,7 +47,7 @@ public class Database {
         execute("DROP TABLE IF EXISTS image_tag_junction");
     }
 
-    private void createImageTable() {
+    private void createImagesTable() {
         String sql = "CREATE TABLE IF NOT EXISTS images (\n"
                 + "	id integer PRIMARY KEY,\n"
                 + "	label text NOT NULL,\n"
@@ -85,10 +85,10 @@ public class Database {
         execute(sql);
     }
 
-
     public void addImageByUrl(String url, String label, List<String> tags) {
         //todo add tag if does not exist and then create join
         tags.forEach(this::createTag);
+
         String sql = String.format(
                 "INSERT INTO IMAGES " +
                         "(label, url)" +
@@ -96,6 +96,58 @@ public class Database {
                         "('%s', '%s');",
                 label, url);
         execute(sql);
+
+
+        tags.forEach(s -> {
+            //get tag id && image id
+        });
     }
 
+    public Image getImageById(int id) {
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+        String sql = String.format("select id, image, label, url \n" +
+                "from images where id = '%s';", id);
+        try (Statement statement = conn.createStatement()) {
+            ResultSet rs = statement.executeQuery(sql);
+            String label = rs.getString("label");
+            String url = rs.getString("url");
+            return new Image(id, label, url);
+        } catch (SQLException e) {
+            //todo
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public List<Image> getImages() {
+        ArrayList<Image> images = new ArrayList<>();
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+        String sql = "select id, image, label, url \n" +
+                "from images";
+        try (Statement statement = conn.createStatement()) {
+            ResultSet rs = statement.executeQuery(sql);
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String label = rs.getString("label");
+                String url = rs.getString("url");
+                images.add(new Image(id, label, url));
+            }
+        } catch (SQLException e) {
+            //todo
+            throw new RuntimeException(e.getMessage());
+        }
+        return images;
+    }
+
+    public List<Image> getImagesByObjects(List<String> objects) {
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+        //get image ids from join table
+        //return all image id rows
+        return null;
+    }
 }
