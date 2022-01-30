@@ -1,7 +1,9 @@
+package Models;
+
 public class Image {
-    int id;
-    String label;
-    String url;
+    public int id;
+    public String label;
+    public String url;
     public Image(int id, String label, String url){
         this.id = id;
         this.label = label;
@@ -11,7 +13,7 @@ public class Image {
 
     @Override
     public String toString() {
-        return "Image{" +
+        return "Models.Image{" +
                 "id=" + id +
                 ", label='" + label + '\'' +
                 ", url='" + url + '\'' +

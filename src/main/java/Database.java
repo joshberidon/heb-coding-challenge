@@ -1,3 +1,5 @@
+import Models.Image;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,29 +80,66 @@ public class Database {
         execute(sql);
     }
 
+
+    private int createTag2(String tag) {
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+        String sql = String.format("INSERT OR IGNORE INTO tags (tag) VALUES ('%s') \n" +
+                "SELECT id FROM tags;", tag.toLowerCase());
+        try (Statement statement = conn.createStatement()) {
+            ResultSet rs = statement.executeQuery(sql);
+            int id = rs.getInt("id");
+            System.out.println("Tag " + tag + " id: " + id);
+            return id;
+        } catch (SQLException e) {
+            //todo
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+
     private void createTag(String tag) {
         String sql = String.format("INSERT OR IGNORE INTO tags (tag) " +
                 "values ('%s');", tag.toLowerCase());
-        System.out.println(sql);
         execute(sql);
     }
 
-    public void addImageByUrl(String url, String label, List<String> tags) {
+    public Image addImageByUrl(String url, String label, List<String> tags) {
         //todo add tag if does not exist and then create join
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+        Image image;
         tags.forEach(this::createTag);
 
         String sql = String.format(
-                "INSERT INTO IMAGES " +
-                        "(label, url)" +
-                        "values " +
+                "INSERT INTO images " +
+                        "(label, url) " +
+                        "VALUES " +
                         "('%s', '%s');",
                 label, url);
-        execute(sql);
-
+        System.out.println(sql);
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.executeUpdate();
+            int id = statement.getGeneratedKeys().getInt(1);
+            System.out.println(id);
+            image = new Image(id, label, url);
+        } catch (SQLException e) {
+            //todo
+            throw new RuntimeException(e.getMessage());
+        }
 
         tags.forEach(s -> {
-            //get tag id && image id
+            updateImageTagJunctionTable(image.id, 1);
         });
+        return image;
+    }
+
+    public void updateImageTagJunctionTable(int imageId, int tagId){
+        String sql = String.format("INSERT OR IGNORE INTO image_tag_junction (image, tag) " +
+                "values ('%s', '%s');", imageId, tagId);
+        execute(sql);
     }
 
     public Image getImageById(int id) {
