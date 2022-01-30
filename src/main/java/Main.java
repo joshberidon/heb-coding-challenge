@@ -37,6 +37,7 @@ public class Main {
         });
 
         app.post("/images", ctx -> {
+            //todo get url, label from ctx
             String url = "";
             String label = "";
             boolean detect = true;
@@ -54,7 +55,7 @@ public class Main {
                 }
             }
             Image image;
-            if(url != null){
+            if (url != null) {
                 image = database.addImageByUrl(url, label, tags);
             } else {
                 image = database.addImageByUrl(url, label, tags);

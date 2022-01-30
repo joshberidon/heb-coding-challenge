@@ -9,7 +9,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
 
 public class HttpClient {
@@ -22,7 +21,7 @@ public class HttpClient {
                 .authenticator((route, response) -> {
                     if (response.request()
                             .header("Authorization") != null) {
-                        return null; // Give up, we've already attempted to authenticate.
+                        return null;
                     }
 
                     //todo move to secrets, these are just free creds

@@ -122,7 +122,8 @@ public class Database {
         System.out.println(sql);
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.executeUpdate();
-            int id = statement.getGeneratedKeys().getInt(1);
+            int id = statement.getGeneratedKeys()
+                    .getInt(1);
             System.out.println(id);
             image = new Image(id, label, url);
         } catch (SQLException e) {
@@ -136,7 +137,7 @@ public class Database {
         return image;
     }
 
-    public void updateImageTagJunctionTable(int imageId, int tagId){
+    public void updateImageTagJunctionTable(int imageId, int tagId) {
         String sql = String.format("INSERT OR IGNORE INTO image_tag_junction (image, tag) " +
                 "values ('%s', '%s');", imageId, tagId);
         execute(sql);
