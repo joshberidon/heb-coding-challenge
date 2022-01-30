@@ -51,7 +51,6 @@ public class Database {
         String sql = "CREATE TABLE IF NOT EXISTS images (\n"
                 + "	id integer PRIMARY KEY,\n"
                 + "	label text NOT NULL,\n"
-                + "	tags text,\n"
                 + "	image blob,\n"
                 + "	url text\n"
                 + ");";
@@ -88,14 +87,14 @@ public class Database {
 
 
     public void addImageByUrl(String url, String label, List<String> tags) {
-        //add tag if does not exist
+        //todo add tag if does not exist and then create join
         tags.forEach(this::createTag);
         String sql = String.format(
                 "INSERT INTO IMAGES " +
-                        "(label,tags,url)" +
+                        "(label, url)" +
                         "values " +
-                        "('%s','%s','%s');",
-                label, String.join(",", tags), url);
+                        "('%s', '%s');",
+                label, url);
         execute(sql);
     }
 
