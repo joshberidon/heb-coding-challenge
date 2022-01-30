@@ -16,27 +16,30 @@ public class Main {
 
         app.get("/images", ctx -> {
             //todo sanitize
-            ctx.result(database.getImages()
-                    .toString());
-        });
-
-        app.get("/images?objects={query}", ctx -> {
-            //todo sanitize
-            List<String> objects = Arrays.asList(
-                    ctx.pathParam("query")
-                            .split(","));
-            ctx.result(database.getImagesByObjects(objects)
-                    .toString());
+            String query = ctx.queryParam("objects");
+            if (query != null) {
+                System.out.println("Trying to find images by object");
+                List<String> objects = Arrays.asList(
+                        query.split(","));
+                ctx.result(database.getImagesByTags(objects)
+                        .toString());
+            } else {
+                System.out.println("Trying to find all images");
+                ctx.result(database.getImages()
+                        .toString());
+            }
         });
 
         app.get("/images/{id}", ctx -> {
             //todo sanitize
+            System.out.println("Trying to find images by id");
             int id = Integer.parseInt(ctx.pathParam("id"));
             ctx.result(database.getImageById(id)
                     .toString());
         });
 
         app.post("/images", ctx -> {
+            //todo sanitize
             //todo get url, label from ctx
             String url = "";
             String label = "";
@@ -67,6 +70,7 @@ public class Main {
         database.addImageByUrl("cat", "label", Arrays.asList("cat", "dog"));
         database.addImageByUrl("pig", "label", Arrays.asList("pig", "horse"));
         database.addImageByUrl("donkey", "label", Arrays.asList("donkey", "pig"));
+        database.addImageByUrl("pig & cat", "label", Arrays.asList("pig", "cat"));
     }
 
 }

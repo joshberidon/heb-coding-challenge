@@ -80,24 +80,21 @@ public class Database {
         execute(sql);
     }
 
-
-    private int createTag2(String tag) {
+    private int getTagId(String tag) {
+        //todo combine into one query with create Tag
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
-        String sql = String.format("INSERT OR IGNORE INTO tags (tag) VALUES ('%s') \n" +
-                "SELECT id FROM tags;", tag.toLowerCase());
+        String sql = String.format("select id  \n" +
+                "from tags where tag = '%s';", tag);
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
-            int id = rs.getInt("id");
-            System.out.println("Tag " + tag + " id: " + id);
-            return id;
+            return rs.getInt(1);
         } catch (SQLException e) {
             //todo
             throw new RuntimeException(e.getMessage());
         }
     }
-
 
     private void createTag(String tag) {
         String sql = String.format("INSERT OR IGNORE INTO tags (tag) " +
@@ -106,7 +103,6 @@ public class Database {
     }
 
     public Image addImageByUrl(String url, String label, List<String> tags) {
-        //todo add tag if does not exist and then create join
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
@@ -119,12 +115,10 @@ public class Database {
                         "VALUES " +
                         "('%s', '%s');",
                 label, url);
-        System.out.println(sql);
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.executeUpdate();
             int id = statement.getGeneratedKeys()
                     .getInt(1);
-            System.out.println(id);
             image = new Image(id, label, url);
         } catch (SQLException e) {
             //todo
@@ -132,7 +126,7 @@ public class Database {
         }
 
         tags.forEach(s -> {
-            updateImageTagJunctionTable(image.id, 1);
+            updateImageTagJunctionTable(image.id, getTagId(s));
         });
         return image;
     }
@@ -147,8 +141,8 @@ public class Database {
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
-        String sql = String.format("select id, image, label, url \n" +
-                "from images where id = '%s';", id);
+        String sql = String.format("SELECT images.id, images.image, images.label, images.url \n" +
+                "FROM images WHERE id = '%s';", id);
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
             String label = rs.getString("label");
@@ -161,6 +155,7 @@ public class Database {
     }
 
     public List<Image> getImages() {
+        //todo need to also get the tags assosciated
         ArrayList<Image> images = new ArrayList<>();
         if (conn == null) {
             throw new RuntimeException("No database connection");
@@ -182,12 +177,46 @@ public class Database {
         return images;
     }
 
-    public List<Image> getImagesByObjects(List<String> objects) {
+    private List<Integer> getImageIdsByTagId(int tagId) {
+        List<Integer> imageIds = new ArrayList<>();
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
-        //get image ids from join table
-        //return all image id rows
-        return null;
+        String sql = String.format("SELECT DISTINCT image, tag \n" +
+                "from image_tag_junction WHERE tag = '%s';", tagId);
+        try (Statement statement = conn.createStatement()) {
+            ResultSet rs = statement.executeQuery(sql);
+            while (rs.next()) {
+                int imageId = rs.getInt("image");
+                imageIds.add(imageId);
+            }
+        } catch (SQLException e) {
+            //todo
+            throw new RuntimeException(e.getMessage());
+        }
+        return imageIds;
+    }
+
+    public List<Image> getImagesByTags(List<String> tags) {
+        List<Image> images = new ArrayList<>();
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+
+        tags.forEach(s -> {
+            int tagId = getTagId(s);
+            List<Integer> imageIds = getImageIdsByTagId(tagId);
+            System.out.println(imageIds);
+            imageIds.forEach(integer -> {
+                if (images.stream()
+                        .noneMatch(o -> o.id == (integer))) {
+                    Image image = getImageById(integer);
+                    image.tags = tags;
+                    images.add(image);
+                }
+            });
+        });
+
+        return images;
     }
 }

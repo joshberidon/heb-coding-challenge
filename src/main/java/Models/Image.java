@@ -1,9 +1,12 @@
 package Models;
 
+import java.util.List;
+
 public class Image {
     public int id;
     public String label;
     public String url;
+    public List<String> tags;
 
     public Image(int id, String label, String url) {
         this.id = id;
@@ -14,10 +17,11 @@ public class Image {
 
     @Override
     public String toString() {
-        return "Models.Image{" +
+        return "Image{" +
                 "id=" + id +
                 ", label='" + label + '\'' +
                 ", url='" + url + '\'' +
+                ", tags=" + tags +
                 '}';
     }
 }
