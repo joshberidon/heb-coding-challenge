@@ -138,42 +138,53 @@ public class Database {
     }
 
     public Image getImageById(int id) {
+        Image image;
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
         String sql = String.format("SELECT images.id, images.image, images.label, images.url \n" +
-                "FROM images WHERE id = '%s';", id);
+                        "FROM images WHERE id = '%s';"
+                , id);
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
             String label = rs.getString("label");
             String url = rs.getString("url");
-            return new Image(id, label, url);
+            image = new Image(id, label, url);
         } catch (SQLException e) {
             //todo
             throw new RuntimeException(e.getMessage());
         }
+
+        //todo make this more efficient via sql
+        image.tags = getTagsByImageId(image.id);
+        return image;
     }
 
     public List<Image> getImages() {
-        //todo need to also get the tags assosciated
         ArrayList<Image> images = new ArrayList<>();
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
-        String sql = "select id, image, label, url \n" +
-                "from images";
+        String sql = "SELECT images.id, images.image, images.label, images.url FROM images";
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String label = rs.getString("label");
                 String url = rs.getString("url");
+
                 images.add(new Image(id, label, url));
+
             }
         } catch (SQLException e) {
             //todo
             throw new RuntimeException(e.getMessage());
         }
+
+        //todo make this more efficient via sql
+        images.forEach(image -> {
+            image.tags = getTagsByImageId(image.id);
+        });
         return images;
     }
 
@@ -218,5 +229,25 @@ public class Database {
         });
 
         return images;
+    }
+
+    public List<String> getTagsByImageId(int imageId) {
+        List<String> tags = new ArrayList<>();
+        if (conn == null) {
+            throw new RuntimeException("No database connection");
+        }
+        String sql = String.format("SELECT image_tag_junction.tag, tags.tag from image_tag_junction \n" +
+                "INNER JOIN tags ON image_tag_junction.tag = tags.id WHERE image_tag_junction.image = '%s';", imageId);
+        try (Statement statement = conn.createStatement()) {
+            ResultSet rs = statement.executeQuery(sql);
+            while (rs.next()) {
+                String tag = rs.getString(2);
+                tags.add(tag);
+            }
+        } catch (SQLException e) {
+            //todo
+            throw new RuntimeException(e.getMessage());
+        }
+        return tags;
     }
 }

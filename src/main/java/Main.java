@@ -4,6 +4,7 @@ import io.javalin.Javalin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,7 @@ public class Main {
         database.addImageByUrl("pig", "label", Arrays.asList("pig", "horse"));
         database.addImageByUrl("donkey", "label", Arrays.asList("donkey", "pig"));
         database.addImageByUrl("pig & cat", "label", Arrays.asList("pig", "cat"));
+        database.addImageByUrl("empty list", "label", Collections.emptyList());
     }
 
 }
