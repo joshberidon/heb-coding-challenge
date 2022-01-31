@@ -15,6 +15,7 @@ public class Database {
         createImageTagJunctionTable();
     }
 
+    //Create db if it doesn't exist
     private void createNewDatabase(String fileName) {
         String url = "jdbc:sqlite:" + fileName;
 
@@ -25,11 +26,10 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
     }
-
+    //Execute sql boilerplate
     private void execute(String sql) {
         //make sure we  have a connection
         if (conn == null) {
@@ -38,17 +38,18 @@ public class Database {
         try (Statement statement = conn.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
     }
 
+    //drop all tables for testing
     private void dropTables() {
         execute("DROP TABLE IF EXISTS images");
         execute("DROP TABLE IF EXISTS tags");
         execute("DROP TABLE IF EXISTS image_tag_junction");
     }
 
+    //create tables
     private void createImagesTable() {
         String sql = "CREATE TABLE IF NOT EXISTS images (\n"
                 + "	id integer PRIMARY KEY,\n"
@@ -85,13 +86,13 @@ public class Database {
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
+        //todo use prepared statement
         String sql = String.format("select id  \n" +
                 "from tags where tag = '%s';", tag);
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
             return rs.getInt(1);
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -107,8 +108,10 @@ public class Database {
             throw new RuntimeException("No database connection");
         }
         Image image;
+        //todo do this in a batched sql query
         tags.forEach(this::createTag);
 
+        //todo prepared statement
         String sql = String.format(
                 "INSERT INTO images " +
                         "(label, url) " +
@@ -117,11 +120,12 @@ public class Database {
                 label, url);
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.executeUpdate();
+
+            //get id of last generated row
             int id = statement.getGeneratedKeys()
                     .getInt(1);
             image = new Image(id, label, url, tags);
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
 
@@ -147,18 +151,15 @@ public class Database {
                 , id);
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
-            if(rs.next()){
-                System.out.println("is not closed");
+            if (rs.next()) {
                 String label = rs.getString("label");
                 String url = rs.getString("url");
                 image = new Image(id, label, url);
             } else {
-                System.out.println("is closed");
                 return null;
             }
 
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
 
@@ -184,7 +185,6 @@ public class Database {
 
             }
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
 
@@ -209,7 +209,6 @@ public class Database {
                 imageIds.add(imageId);
             }
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
         return imageIds;
@@ -224,8 +223,8 @@ public class Database {
         tags.forEach(s -> {
             int tagId = getTagId(s);
             List<Integer> imageIds = getImageIdsByTagId(tagId);
-            System.out.println(imageIds);
             imageIds.forEach(integer -> {
+                //make sure to not returning duplicate images here
                 if (images.stream()
                         .noneMatch(o -> o.id == (integer))) {
                     Image image = getImageById(integer);
@@ -243,6 +242,7 @@ public class Database {
         if (conn == null) {
             throw new RuntimeException("No database connection");
         }
+        //todo use prepared statements
         String sql = String.format("SELECT image_tag_junction.tag, tags.tag from image_tag_junction \n" +
                 "INNER JOIN tags ON image_tag_junction.tag = tags.id WHERE image_tag_junction.image = '%s';", imageId);
         try (Statement statement = conn.createStatement()) {
@@ -252,7 +252,6 @@ public class Database {
                 tags.add(tag);
             }
         } catch (SQLException e) {
-            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
         return tags;

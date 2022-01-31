@@ -1,18 +1,12 @@
 
-import Models.Image;
 import Models.Result;
 import Models.ResultEnvelope;
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
-import com.squareup.moshi.Types;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Objects;
 
 public class HttpClient {

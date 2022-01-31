@@ -5,7 +5,6 @@ import io.javalin.Javalin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +21,6 @@ public class Main {
                 //todo sanitize
                 String query = ctx.queryParam("objects");
                 if (query != null) {
-                    System.out.println("Trying to find images by object");
                     List<String> objects = Arrays.asList(
                             query.split(","));
                     ctx.result(database.getImagesByTags(objects)
@@ -55,6 +53,7 @@ public class Main {
 
         app.post("/images", ctx -> {
             try {
+                //todo sanitize
                 PostImage postImageReq = jsonClient.postImageFromJson(ctx.body());
 
                 String url = postImageReq.url;
@@ -73,28 +72,11 @@ public class Main {
                         label = "unknown";
                     }
                 }
-                System.out.println(tags);
-                Image image;
-                if (url != null) {
-                    image = database.addImageByUrl(url, label, tags);
-                } else {
-                    image = database.addImageByUrl(url, label, tags);
-                }
-
-//                image.tags = tags;
-                ctx.result(jsonClient.getImageJson(image));
+                ctx.status(200);
+                ctx.result(jsonClient.getImageJson(database.addImageByUrl(url, label, tags)));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
                 ctx.status(500);
             }
-
         });
-
-        database.addImageByUrl("cat", "label", Arrays.asList("cat", "dog"));
-        database.addImageByUrl("pig", "label", Arrays.asList("pig", "horse"));
-        database.addImageByUrl("donkey", "label", Arrays.asList("donkey", "pig"));
-        database.addImageByUrl("pig & cat", "label", Arrays.asList("pig", "cat"));
-        database.addImageByUrl("empty list", "label", Collections.emptyList());
     }
-
 }
