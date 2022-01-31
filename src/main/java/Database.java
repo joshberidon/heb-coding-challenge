@@ -25,7 +25,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -38,7 +38,7 @@ public class Database {
         try (Statement statement = conn.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -91,7 +91,7 @@ public class Database {
             ResultSet rs = statement.executeQuery(sql);
             return rs.getInt(1);
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -119,9 +119,9 @@ public class Database {
             statement.executeUpdate();
             int id = statement.getGeneratedKeys()
                     .getInt(1);
-            image = new Image(id, label, url);
+            image = new Image(id, label, url, tags);
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
 
@@ -147,11 +147,18 @@ public class Database {
                 , id);
         try (Statement statement = conn.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
-            String label = rs.getString("label");
-            String url = rs.getString("url");
-            image = new Image(id, label, url);
+            if(rs.next()){
+                System.out.println("is not closed");
+                String label = rs.getString("label");
+                String url = rs.getString("url");
+                image = new Image(id, label, url);
+            } else {
+                System.out.println("is closed");
+                return null;
+            }
+
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
 
@@ -177,7 +184,7 @@ public class Database {
 
             }
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
 
@@ -202,7 +209,7 @@ public class Database {
                 imageIds.add(imageId);
             }
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
         return imageIds;
@@ -222,7 +229,7 @@ public class Database {
                 if (images.stream()
                         .noneMatch(o -> o.id == (integer))) {
                     Image image = getImageById(integer);
-                    image.tags = tags;
+                    image.tags = getTagsByImageId(image.id);
                     images.add(image);
                 }
             });
@@ -245,7 +252,7 @@ public class Database {
                 tags.add(tag);
             }
         } catch (SQLException e) {
-            //todo
+            //todo throw a real error
             throw new RuntimeException(e.getMessage());
         }
         return tags;

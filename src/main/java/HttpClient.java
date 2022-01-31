@@ -1,20 +1,24 @@
 
+import Models.Image;
 import Models.Result;
 import Models.ResultEnvelope;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
+import com.squareup.moshi.Types;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Objects;
 
 public class HttpClient {
     private final OkHttpClient client;
-    private final Moshi moshi = new Moshi.Builder().build();
-    private final JsonAdapter<ResultEnvelope> tagsJsonAdapter = moshi.adapter(ResultEnvelope.class);
+    private final JsonClient jsonClient = new JsonClient();
+
 
     public HttpClient() {
         client = new OkHttpClient.Builder()
@@ -44,7 +48,7 @@ public class HttpClient {
                 .execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-            ResultEnvelope envelope = tagsJsonAdapter.fromJson(Objects.requireNonNull(response.body())
+            ResultEnvelope envelope = jsonClient.resultEnvelope(Objects.requireNonNull(response.body())
                     .source());
 
             if (envelope != null) {
