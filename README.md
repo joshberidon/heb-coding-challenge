@@ -11,7 +11,7 @@ Coding project for HEB
 
 [Imagga](https://imagga.com/) for image recognition  
 
-[SQLite](www.sqlite.org)
+[SQLite](https://www.sqlite.org/index.html)
 
 ## Things I would like to still do:
 * Tests
